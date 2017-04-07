@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -134,11 +135,11 @@ public class Melody extends Unit {
 			final Melody melody = (Melody) unit;
 			int distance = 0;
 
-			if (this.length != melody.length) {
-				final int lengthCoefficient = 100;
-				// I think I will hardcode this anyway
-				distance += Math.abs(this.length - melody.length) * lengthCoefficient;
-			}
+//			if (this.length != melody.length) {
+//				final int lengthCoefficient = 100;
+//				// I think I will hardcode this anyway
+//				distance += Math.abs(this.length - melody.length) * lengthCoefficient;
+//			}
 
 			for (int i = 0; i < Math.max(this.length, melody.length); i++) {
 				Set<Tone> myTones = getTonesAt(i);
@@ -156,12 +157,13 @@ public class Melody extends Unit {
 				}
 				Collections.sort(hisTonesPitch);
 
-				final int differenceCoefficient = 10;
+				final int differenceCoefficient = 1;
 				for (int j = 0; j < Math.max(myTonesPitch.size(), hisTonesPitch.size()); j++) {
 					int myTone = myTonesPitch.size() > j ? myTonesPitch.get(j) : 0;
 					int hisTone = hisTonesPitch.size() > j ? hisTonesPitch.get(j) : 0;
-
-					distance += Math.abs(myTone - hisTone) * differenceCoefficient;
+					if (myTone != hisTone) {
+						distance += 1000 ;//+ Math.abs(myTone - hisTone) * differenceCoefficient;
+					}
 				}
 			}
 
@@ -178,5 +180,25 @@ public class Melody extends Unit {
 		}
 
 		return tones.stream().collect(Collectors.toSet());
+	}
+
+	public int getLength() {
+		return this.length;
+	}
+
+	public void clear(int index) {
+		this.sequence.remove(index);
+		this.distance = null;
+	}
+	
+	@Override
+	public Unit duplicate() {
+		Melody melody = new Melody(this.length);
+		for (Entry<Integer, List<Tone>> entry : this.sequence.entrySet()) {
+			for (Tone tone : entry.getValue()) {
+				melody.addTone(entry.getKey(), tone);
+			}
+		}
+		return melody;
 	}
 }

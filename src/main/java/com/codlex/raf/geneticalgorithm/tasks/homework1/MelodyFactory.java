@@ -10,8 +10,8 @@ import com.codlex.raf.geneticalgorithm.core.Unit;
 public class MelodyFactory extends PopulationFactory {
 
 	private final int melodyLength;
-	private final int maxConcurrentTones = 5;
-	private final int populationSize = 100;
+	private final int maxConcurrentTones = 3;
+	private final int populationSize = 1500;
 
 	public MelodyFactory(int melodyLength) {
 		this.melodyLength = melodyLength;

@@ -1,9 +1,7 @@
 package com.codlex.raf.geneticalgorithm.core;
 
-public class MutatingStrategy {
+public abstract class MutatingStrategy {
 
-	public void mutate(final Unit unit) {
-		
-	}
+	public abstract Unit mutate(final Unit unit);
 
 }

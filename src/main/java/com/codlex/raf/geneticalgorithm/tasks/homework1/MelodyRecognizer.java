@@ -12,7 +12,7 @@ public class MelodyRecognizer {
 	public static void main(String[] args) throws InvalidMidiDataException, IOException {
 		Melody perfectMelody = Test.loadMelodyFromMidi("test.mid", 1, 0, 50);
 		
-		final GeneticAlgorithm solver = new GeneticAlgorithm(new MelodyFactory(100), perfectMelody);
+		final GeneticAlgorithm solver = new GeneticAlgorithm(new MelodyFactory(120), new MelodyMutator(), perfectMelody);
 		solver.execute();
 		for (Unit unit : solver.getBest()) {
 			System.out.println("Playing: " + unit);

@@ -24,7 +24,7 @@ public class Test {
 	
 	public static Melody loadMelodyFromMidi(final String file, int trackNumber, int channel, int length)
 			throws InvalidMidiDataException, IOException {
-		
+		int melodyLength = 0;
 		final Sequence sequence = MidiSystem.getSequence(new File(file));
 		Map<Tone, MidiTone> currentTones = new HashMap<>();
 		List<MidiTone> allTones = new ArrayList<>();
@@ -65,6 +65,9 @@ public class Test {
 					MidiTone midiTone = currentTones.remove(tone);
 					midiTone.setTo((int) event.getTick() / resolution);
 					allTones.add(midiTone);
+					if (event.getTick() / resolution > melodyLength) {
+						melodyLength = (int) (event.getTick() / resolution);
+					}
 
 					System.out.println("Note off, " + noteName + octave + " key=" + key + " velocity: " + velocity);
 				} else {
@@ -81,8 +84,8 @@ public class Test {
 		}
 
 		System.out.println("size: " + allTones.size());
-
-		final Melody melody = new Melody(10000);
+		System.out.println("Melody length is: " + melodyLength);
+		final Melody melody = new Melody(melodyLength);
 		for (MidiTone midiTone : allTones) {
 			Tone tone = midiTone.getTone();
 			for (int i = midiTone.getFrom(); i < midiTone.getTo(); i += 240) {
