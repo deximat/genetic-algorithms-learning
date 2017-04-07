@@ -4,11 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-import javax.sound.midi.MidiChannel;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Synthesizer;
-
 import com.codlex.raf.geneticalgorithm.core.PopulationFactory;
 import com.codlex.raf.geneticalgorithm.core.Unit;
 

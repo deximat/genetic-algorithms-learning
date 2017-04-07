@@ -20,6 +20,8 @@ public class Test {
 	public static final int NOTE_OFF = 0x80;
 	public static final String[] NOTE_NAMES = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
 	public static int resolution = 100;
+	
+	
 	public static Melody loadMelodyFromMidi(final String file, int trackNumber, int channel, int length)
 			throws InvalidMidiDataException, IOException {
 		
@@ -80,7 +82,7 @@ public class Test {
 
 		System.out.println("size: " + allTones.size());
 
-		final Melody melody = new Melody(1000000);
+		final Melody melody = new Melody(10000);
 		for (MidiTone midiTone : allTones) {
 			Tone tone = midiTone.getTone();
 			for (int i = midiTone.getFrom(); i < midiTone.getTo(); i += 240) {
@@ -88,9 +90,9 @@ public class Test {
 			}
 		}
 		//
-		melody.play();
+		// melody.play();
 
-		return null;
+		return melody;
 
 	}
 
