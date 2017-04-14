@@ -10,14 +10,15 @@ public class MelodyMutator extends MutatingStrategy {
 	public Unit mutate(Unit unit) {
 		final Melody melody = (Melody) unit.duplicate();
 		
-		int maxSlotsToClear = 20;
+		int maxSlotsToClear = (melody.getLength() * 7) / 100;
 		int slotsToClear = ThreadLocalRandom.current().nextInt(maxSlotsToClear);
 		for (int i = 0; i < slotsToClear; i++) {
-			melody.clear(ThreadLocalRandom.current().nextInt(melody.getLength()));
+			// melody.clear(ThreadLocalRandom.current().nextInt(melody.getLength()));
+			melody.removeToneAt(ThreadLocalRandom.current().nextInt(melody.getLength()));
 		}
 		
 		// add tone
-		int maxTonesToAdd = 30;
+		int maxTonesToAdd = (melody.getLength() * 7) / 100;
 		int tonesToAdd = ThreadLocalRandom.current().nextInt(maxTonesToAdd);
 		for (int i = 0; i < tonesToAdd; i++) {
 			melody.addTone(ThreadLocalRandom.current().nextInt(melody.getLength()),

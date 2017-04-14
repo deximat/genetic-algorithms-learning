@@ -11,7 +11,7 @@ public class MelodyFactory extends PopulationFactory {
 
 	private final int melodyLength;
 	private final int maxConcurrentTones = 3;
-	private final int populationSize = 1500;
+	private final int populationSize = 5000;
 
 	public MelodyFactory(int melodyLength) {
 		this.melodyLength = melodyLength;
@@ -35,13 +35,6 @@ public class MelodyFactory extends PopulationFactory {
 			}
 		}
 		return melody;
-	}
-
-	public static void main(String[] args) {
-		 for (Unit melody : new MelodyFactory(10).generate()) {
-			 System.out.println(melody);
-			 ((Melody) melody).play();
-		 }
 	}
 
 }

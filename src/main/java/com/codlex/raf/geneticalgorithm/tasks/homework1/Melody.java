@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -43,8 +44,24 @@ public class Melody extends Unit {
 			List<Tone> firstTones = this.sequence.get(i) != null ? this.sequence.get(i) : Collections.emptyList();
 			List<Tone> secondTones = secondMelody.sequence.get(i) != null ? secondMelody.sequence.get(i)
 					: Collections.emptyList();
-
-			if (i < middle) {
+//
+//			if (i < middle) {
+//				for (Tone tone : firstTones) {
+//					firstChild.addTone(i, tone);
+//				}
+//				for (Tone tone : secondTones) {
+//					secondChild.addTone(i, tone);
+//				}
+//			} else {
+//				for (Tone tone : firstTones) {
+//					secondChild.addTone(i, tone);
+//				}
+//				for (Tone tone : secondTones) {
+//					firstChild.addTone(i, tone);
+//				}
+//			}
+			
+			if (Math.random() < 0.5) {
 				for (Tone tone : firstTones) {
 					firstChild.addTone(i, tone);
 				}
@@ -52,9 +69,11 @@ public class Melody extends Unit {
 					secondChild.addTone(i, tone);
 				}
 			} else {
+				
 				for (Tone tone : firstTones) {
 					secondChild.addTone(i, tone);
 				}
+				
 				for (Tone tone : secondTones) {
 					firstChild.addTone(i, tone);
 				}
@@ -105,18 +124,18 @@ public class Melody extends Unit {
 			synthesizer.open();
 
 			MidiChannel channel = synthesizer.getChannels()[0]; // piano
-			double multiplier = 1.5;
+			double multiplier = 2;
 			for (List<Tone> tones : this.sequence.values()) {
 				if (tones == null) {
-					Thread.sleep((long) (Test.resolution * multiplier));
+					Thread.sleep((long) (MelodyLoader.resolution * multiplier));
 				} else {
 					for (Tone tone : tones) {
 						channel.noteOn(tone.getMidiSound(), velocity);
-						System.out.println("Playing: " + tone);
-						System.out.println("Tone: " + tone.getMidiSound());
+//						System.out.println("Playing: " + tone);
+//						System.out.println("Tone: " + tone.getMidiSound());
 
 					}
-					Thread.sleep((long) (Test.resolution * multiplier));
+					Thread.sleep((long) (MelodyLoader.resolution * multiplier));
 					for (Tone tone : tones) {
 						channel.noteOff(tone.getMidiSound());
 					}
@@ -135,11 +154,13 @@ public class Melody extends Unit {
 			final Melody melody = (Melody) unit;
 			int distance = 0;
 
-//			if (this.length != melody.length) {
-//				final int lengthCoefficient = 100;
-//				// I think I will hardcode this anyway
-//				distance += Math.abs(this.length - melody.length) * lengthCoefficient;
-//			}
+			if (this.length != melody.length) {
+				final int lengthCoefficient = 10000;
+				System.out.println(this.length);
+				System.out.println(melody.length);
+				System.exit(0);
+				distance += Math.abs(this.length - melody.length) * lengthCoefficient;
+			}
 
 			for (int i = 0; i < Math.max(this.length, melody.length); i++) {
 				Set<Tone> myTones = getTonesAt(i);
@@ -162,7 +183,7 @@ public class Melody extends Unit {
 					int myTone = myTonesPitch.size() > j ? myTonesPitch.get(j) : 0;
 					int hisTone = hisTonesPitch.size() > j ? hisTonesPitch.get(j) : 0;
 					if (myTone != hisTone) {
-						distance += 1000 ;//+ Math.abs(myTone - hisTone) * differenceCoefficient;
+						distance += 1000 + Math.abs(myTone - hisTone) * differenceCoefficient;
 					}
 				}
 			}
@@ -200,5 +221,63 @@ public class Melody extends Unit {
 			}
 		}
 		return melody;
+	}
+	
+	public String toStringMusicSheet() {
+		StringBuilder builder = new StringBuilder();	
+		
+		int i = 0;
+		while (i < this.length) {
+			int start = i;
+			List<Tone> tones = this.sequence.get(start);
+			int duration = 0;
+			while (Objects.equals(tones, this.sequence.get(start + duration)) && start + duration < this.length) {
+				duration++;
+			}
+			
+			if (tones == null) {
+				builder.append("P");
+				builder.append("(");
+//				builder.append(start);
+//				builder.append("-");
+//				builder.append(start + duration);
+//				builder.append(":");
+				builder.append(duration);
+				builder.append(")");
+			} else if (tones.size() == 1) {
+				builder.append(tones.get(0));
+				builder.append("(");
+//				builder.append(start);
+//				builder.append("-");
+//				builder.append(start + duration);
+//				builder.append(":");
+				builder.append(duration);
+				builder.append(")");
+			} else {
+				builder.append("(");
+				for (Tone tone : tones) {
+					builder.append(tone);
+					builder.append("(");
+//					builder.append(start);
+//					builder.append("-");
+//					builder.append(start + duration);
+//					builder.append(":");
+					builder.append(duration);
+					builder.append(")");
+				}
+				builder.append(")");
+			}
+			
+			i += duration;
+		}
+		
+		return builder.toString();
+	}
+
+	public void removeToneAt(int index) {
+		List<Tone> tones = this.sequence.get(index);
+		if (tones != null && !tones.isEmpty()) {
+			tones.remove(ThreadLocalRandom.current().nextInt(tones.size()));
+		}
 	}
 }
