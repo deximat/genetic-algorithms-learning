@@ -104,7 +104,6 @@ public class GeneticAlgorithm {
 		
 		int compareCoefficient = 500;
 		double differenceFromLast = Math.abs(this.lastDistance - bestDistance);
-		System.out.println(differenceFromLast);
 		if (differenceFromLast >= compareCoefficient) {
 			this.lastGenerationSimilarDistance = currentGeneration;
 		}

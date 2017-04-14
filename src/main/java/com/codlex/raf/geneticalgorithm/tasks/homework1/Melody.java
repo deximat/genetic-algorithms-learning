@@ -156,8 +156,6 @@ public class Melody extends Unit {
 
 			if (this.length != melody.length) {
 				final int lengthCoefficient = 10000;
-				System.out.println(this.length);
-				System.out.println(melody.length);
 				System.exit(0);
 				distance += Math.abs(this.length - melody.length) * lengthCoefficient;
 			}
