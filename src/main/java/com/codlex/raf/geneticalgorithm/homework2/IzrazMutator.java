@@ -10,19 +10,26 @@ public class IzrazMutator extends MutatingStrategy {
 
 	@Override
 	public Unit mutate(Unit unit) {
-		Izraz izraz = (Izraz) unit;
+		Izraz izraz = (Izraz) unit.duplicate();
 		
-//		// swap two numbers in expression
-//		swapOperands(izraz);
-//		
-//		// re roll operation
-//		reRollOperation(izraz);
-//		
-//		// change one number with new number in expression
-//		removeOperation(izraz);
-//		
-//		// add operand
-//		// addOperand(izraz);
+		switch (ThreadLocalRandom.current().nextInt(3)) {
+		case 0:
+			// swap two numbers in expression
+			swapOperands(izraz);
+			break;
+		case 1:
+			// re roll operation
+			reRollOperation(izraz);
+			break;
+		case 2:
+			// change one number with new number in expression
+			removeOperation(izraz);
+			break;
+		}
+		
+		
+		// add operand TODO
+		// addOperand(izraz);
 		
 		return unit;
 	}

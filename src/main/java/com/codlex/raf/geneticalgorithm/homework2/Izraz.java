@@ -2,17 +2,15 @@ package com.codlex.raf.geneticalgorithm.homework2;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
 
 import com.codlex.raf.geneticalgorithm.core.Unit;
 import com.codlex.raf.geneticalgorithm.homework2.Izraz.Operation.OperationType;
@@ -181,14 +179,14 @@ public class Izraz extends Unit {
 				return 0;
 			}
 
-			return 1 + this.leftGroup.countOperands() + this.rightGroup.countOperands();
+			return 1 + this.leftGroup.countOperations() + this.rightGroup.countOperations();
 		}
 
 		public OperationType setOperation(AtomicInteger currentIndex, int operationIndex, OperationType newValue) {
 			if (this.operation == OperationType.Value) {
 				return null;
 			}
-			
+
 			int index = currentIndex.getAndIncrement();
 			if (index == operationIndex) {
 				OperationType oldValue = this.operation;
@@ -207,12 +205,13 @@ public class Izraz extends Unit {
 			if (this.operation == OperationType.Value) {
 				return null;
 			}
-			
+
 			int index = currentIndex.getAndIncrement();
 			if (index == operationIndex) {
 				OperationType oldValue = this.operation;
 				this.operation = OperationType.Value;
-				this.value = Math.random() < 0.5 ? this.leftGroup.getRandomOperand() : this.rightGroup.getRandomOperand();
+				this.value = Math.random() < 0.5 ? this.leftGroup.getRandomOperand()
+						: this.rightGroup.getRandomOperand();
 				this.leftGroup.parent = null;
 				this.rightGroup.parent = null;
 				this.leftGroup = null;
@@ -231,18 +230,88 @@ public class Izraz extends Unit {
 			if (this.operation == OperationType.Value) {
 				return this.value;
 			}
-			
+
 			if (Math.random() < 0.5) {
 				return this.leftGroup.getRandomOperand();
 			} else {
 				return this.rightGroup.getRandomOperand();
 			}
 		}
+
+		public Operation duplicate(final Operation parent) {
+			Operation operation = new Operation(parent);
+			operation.operation = this.operation;
+			if (this.operation != OperationType.Value) {
+				operation.leftGroup = this.leftGroup.duplicate(operation);
+				operation.rightGroup = this.rightGroup.duplicate(operation);
+			} else {
+				operation.value = this.value;
+			}
+			return operation;
+		}
+
+		private void getOperands(List<Integer> operands) {
+			if (this.operation == OperationType.Value) {
+				operands.add(this.value);
+				return;
+			}
+			this.leftGroup.getOperands(operands);
+			this.rightGroup.getOperands(operands);
+		}
+
+		public List<Integer> getOperands() {
+			final List<Integer> operands = new ArrayList<>();
+			getOperands(operands);
+			return operands;
+		}
+
+		public Operation getOperationObject(final AtomicInteger currentIndex, final int operationIndex) {
+			if (this.operation == OperationType.Value) {
+				return null;
+			}
+
+			int index = currentIndex.getAndIncrement();
+			if (index == operationIndex) {
+				return this;
+			} else {
+				Operation value = this.leftGroup.getOperationObject(currentIndex, operationIndex);
+				if (value == null) {
+					value = this.rightGroup.getOperationObject(currentIndex, operationIndex);
+				}
+				return value;
+			}
+		}
+
+		public boolean setOperationObject(final AtomicInteger atomicInteger, int toReplace, Operation operationObject) {
+			if (this.operation == OperationType.Value) {
+				return false;
+			}
+
+			int currentIndex = atomicInteger.getAndIncrement();
+			if (currentIndex == toReplace) {
+				return true;
+			}
+
+			boolean shouldReplace = this.leftGroup.setOperationObject(atomicInteger, toReplace, operationObject);
+			if (shouldReplace) {
+				this.leftGroup = operationObject.duplicate(this);
+				return false;
+			}
+			shouldReplace = this.rightGroup.setOperationObject(atomicInteger, toReplace, operationObject);
+			if (shouldReplace) {
+				this.rightGroup = operationObject.duplicate(this);
+				return false;
+			}
+
+			return false;
+		}
 	}
 
-	private final Operation topOperation;
+	private Operation topOperation;
+	private final List<Integer> allAllowedOperands;
 
 	public Izraz(final List<Integer> numbers) {
+		this.allAllowedOperands = new ArrayList<>(numbers);
 		int takeNumbers = ThreadLocalRandom.current().nextInt(1, numbers.size() + 1);
 		this.topOperation = new Operation(null);
 		this.topOperation.randomizeWith(numbers, takeNumbers);
@@ -261,12 +330,117 @@ public class Izraz extends Unit {
 		return this.topOperation.toString();
 	}
 
+	public static void main(String[] args) {
+
+		List<Integer> b = new ArrayList<>();
+		b.add(1);
+		b.add(2);
+		b.add(2);
+
+		List<Integer> a = new ArrayList<>();
+		a.add(1);
+		a.add(2);
+		b.removeAll(a);
+
+		System.out.println(b);
+	}
+
+	private class Replacement {
+		int toReplace;
+		int replacement;
+
+		public Replacement(int toReplace, int replacement) {
+			this.toReplace = toReplace;
+			this.replacement = replacement;
+		}
+	}
+
 	@Override
 	public Collection<Unit> makeLoveWith(Unit secondParent) {
+		// dozvoljeni su: (svi - iskoristeni_u_prvom + oni_iz_podstabla)
+		Izraz secondParentIzraz = (Izraz) secondParent;
+
+		List<Integer> allFirstParentOperands = this.topOperation.getOperands();
+
+		List<Replacement> replacements = new ArrayList<>();
+		int operations = this.topOperation.countOperations();
+		for (int i = 0; i < operations; i++) {
+			Operation operation = getOperationObject(i);
+			List<Integer> allowedOperands = new ArrayList<>();
+			allowedOperands.addAll(allowedOperands); // initialize with all
+														// operands
+			for (Integer operand : allFirstParentOperands) {
+				allowedOperands.remove(operand);
+			}
+			allowedOperands.addAll(operation.getOperands()); // add ones we will
+																// swap out
+
+			int secondParentOperations = secondParentIzraz.countOperations();
+			for (int j = 0; j < secondParentOperations; j++) {
+				Operation secondOperation = secondParentIzraz.getOperationObject(j);
+				if (secondOperation == null) {
+					System.out.println(secondParentIzraz);
+				}
+				if (canBeReplaced(allowedOperands, secondOperation.getOperands())) {
+					replacements.add(new Replacement(i, j));
+				}
+			}
+		}
+
 		List<Unit> children = new ArrayList<>();
-		children.add(this);
-		children.add(secondParent);
+
+		if (replacements.size() > 2) {
+			Replacement firstChild = replacements.get(ThreadLocalRandom.current().nextInt(replacements.size()));
+			Izraz firstChildClone = (Izraz) duplicate();
+			firstChildClone.setOperationObject(firstChild.toReplace,
+					secondParentIzraz.getOperationObject(firstChild.replacement));
+			children.add(firstChildClone);
+
+			Replacement secondChild = replacements.get(ThreadLocalRandom.current().nextInt(replacements.size()));
+			Izraz firstChildClone2 = (Izraz) duplicate();
+			firstChildClone2.setOperationObject(secondChild.toReplace,
+					secondParentIzraz.getOperationObject(secondChild.replacement));
+			children.add(firstChildClone2);
+
+		} else {
+			children.add(this);
+			children.add(secondParent);
+		}
+
 		return children;
+	}
+
+	private void setOperationObject(int toReplace, Operation operationObject) {
+		boolean shouldSet = this.topOperation.setOperationObject(new AtomicInteger(), toReplace, operationObject);
+		if (shouldSet) {
+			this.topOperation = operationObject.duplicate(null);
+		}
+	}
+
+	private boolean canBeReplaced(List<Integer> allowedOperands, List<Integer> operands) {
+		Map<Integer, Integer> allowedHash = new HashMap<>();
+		for (Integer allowedOperand : allowedOperands) {
+			Integer count = allowedHash.get(allowedOperand);
+			if (count == null) {
+				count = 0;
+			}
+			count++;
+			allowedHash.put(allowedOperand, count);
+		}
+
+		for (Integer operand : operands) {
+			Integer count = allowedHash.get(operand);
+			if (count == null || count == 0) {
+				return false;
+			}
+			count--;
+			allowedHash.put(operand, count);
+		}
+		return true;
+	}
+
+	private Operation getOperationObject(int index) {
+		return this.topOperation.getOperationObject(new AtomicInteger(), index);
 	}
 
 	@Override
@@ -277,11 +451,17 @@ public class Izraz extends Unit {
 
 	@Override
 	public Unit duplicate() {
-		return null;
+		return new Izraz(this.topOperation.duplicate(null), this.allAllowedOperands);
+	}
+
+	public Izraz(Operation topOperation, List<Integer> allAllowedNumbers) {
+		this.topOperation = topOperation;
+		this.allAllowedOperands = allAllowedNumbers;
 	}
 
 	public Izraz(int value) {
 		this.topOperation = new Operation(value);
+		this.allAllowedOperands = null; // not pairable so it is ok
 	}
 
 	public int countOperands() {

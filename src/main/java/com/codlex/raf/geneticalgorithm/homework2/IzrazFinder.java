@@ -12,12 +12,16 @@ public class IzrazFinder {
 
 	private static List<Integer> generateSimpleNumbers() {
 		List<Integer> sampleNumbers = new ArrayList<>();
-		sampleNumbers.add(112);
-		sampleNumbers.add(55);
-		sampleNumbers.add(2);
-		sampleNumbers.add(2);
-		sampleNumbers.add(2);
+//		sampleNumbers.add(112);
+//		sampleNumbers.add(55);
+//		sampleNumbers.add(2);
+//		sampleNumbers.add(2);
+//		sampleNumbers.add(2);
+//		sampleNumbers.add(1);
+		
 		sampleNumbers.add(1);
+		sampleNumbers.add(2);
+		sampleNumbers.add(3);
 		// (((112-55)*2)/2-1)/2
 		return sampleNumbers;
 	}
@@ -25,7 +29,7 @@ public class IzrazFinder {
 	public static void main(String[] args) throws InvalidMidiDataException, IOException {
 		// TODO: implement reading from the file
 		List<Integer> sampleNumbers = generateSimpleNumbers();
-		int targetResult = 20;
+		int targetResult = 9;
 		
 		final GeneticAlgorithm solver = new GeneticAlgorithm(new IzrazFactory(sampleNumbers), new IzrazMutator(), new Izraz(targetResult));
 		solver.execute();
