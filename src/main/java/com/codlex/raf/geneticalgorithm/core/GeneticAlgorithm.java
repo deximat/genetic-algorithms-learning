@@ -75,20 +75,11 @@ public class GeneticAlgorithm {
 			bestDistance = currentPopulation.get(0).distanceTo(this.perfect);
 
 			System.out.println("Generation(" + currentGeneration + ") distance from perfection: " + averageDistance);
+			System.out.println(currentPopulation);
+//			if (currentGeneration > 5) {
+//			System.exit(0);
+//			}
 			currentGeneration++;
-
-			// if (currentGeneration % playOnGeneration == 0) {
-			//
-			// Melody melody = (Melody) currentPopulation.get(0);
-			// System.out.println(melody.toStringMusicSheet());
-			//
-			// new Thread(new Runnable() {
-			// @Override
-			// public void run() {
-			// melody.play();
-			// }
-			// }).start();
-			// }
 		}
 
 		this.best = currentPopulation;
@@ -98,11 +89,11 @@ public class GeneticAlgorithm {
 	private double lastDistance = Double.MAX_VALUE;
 
 	private boolean shouldEnd(int currentGeneration, double bestDistance) {
-		if (bestDistance < 1000) {
-			return true;
-		}
+//		if (bestDistance < 1000) {
+//			return true;
+//		}
 		
-		int compareCoefficient = 500;
+		int compareCoefficient = 1;
 		double differenceFromLast = Math.abs(this.lastDistance - bestDistance);
 		if (differenceFromLast >= compareCoefficient) {
 			this.lastGenerationSimilarDistance = currentGeneration;
@@ -111,12 +102,14 @@ public class GeneticAlgorithm {
 
 		int similarDistanceCount = currentGeneration - this.lastGenerationSimilarDistance;
 
-		final int endTimesSimilar = 20;
+		final int endTimesSimilar = 200;
 		if (similarDistanceCount > endTimesSimilar) {
 			return true;
 		} else {
 			return false;
 		}
+		
+		
 	}
 
 	public List<Unit> getBest() {
