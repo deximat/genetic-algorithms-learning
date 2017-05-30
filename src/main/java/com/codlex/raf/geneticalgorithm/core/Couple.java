@@ -13,6 +13,9 @@ public class Couple {
 	}
 	
 	public Collection<Unit> reproduce() {
-		return this.firstParent.makeLoveWith(this.secondParent);
+		Collection<Unit> children = this.firstParent.makeLoveWith(this.secondParent);
+//		System.out.println(firstParent + " and " + secondParent);
+//		System.out.println("Gave birth to:" + children);
+		return children;
 	}
 }

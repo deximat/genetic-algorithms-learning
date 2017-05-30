@@ -1,5 +1,7 @@
 package com.codlex.raf.geneticalgorithm.homework2;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.codlex.raf.geneticalgorithm.core.MutatingStrategy;
@@ -8,30 +10,61 @@ import com.codlex.raf.geneticalgorithm.homework2.Izraz.Operation.OperationType;
 
 public class IzrazMutator extends MutatingStrategy {
 
+	private List<Integer> allAllowedNumbers;
+
+	public IzrazMutator(final List<Integer> allAllowedNumbers) {
+		this.allAllowedNumbers = allAllowedNumbers;
+	}
+
 	@Override
 	public Unit mutate(Unit unit) {
 		Izraz izraz = (Izraz) unit.duplicate();
-		
-		switch (ThreadLocalRandom.current().nextInt(3)) {
-		case 0:
-			// swap two numbers in expression
-			swapOperands(izraz);
-			break;
-		case 1:
-			// re roll operation
-			reRollOperation(izraz);
-			break;
-		case 2:
-			// change one number with new number in expression
-			removeOperation(izraz);
-			break;
+		for (int i = 0; i < 2; i++) {
+			switch (ThreadLocalRandom.current().nextInt(4)) {
+			case 0:
+				// swap two numbers in expression
+//				 System.out.println("svap operands " + izraz);
+				swapOperands(izraz);
+
+//				 System.out.println("svap operands mutated" + izraz);
+				break;
+			case 1:
+//				 System.out.println("re roll operation " + izraz);
+				// re roll operation
+				reRollOperation(izraz);
+//				 System.out.println("re roll operation mutated " + izraz);
+
+				break;
+			case 2:
+//				 System.out.println("remove operation " + izraz);
+				// change one number with new number in expression
+				removeOperation(izraz);
+//				 System.out.println("remove operation mutated" + izraz);
+
+				break;
+			case 3:
+//				System.out.println("set operand " + izraz);
+				setOperand(izraz);
+//				System.out.println("set operand mutated" + izraz);
+
+				break;
+			}
 		}
-		
-		
-		// add operand TODO
-		// addOperand(izraz);
-		
-		return unit;
+
+		return izraz;
+	}
+
+	private void setOperand(Izraz izraz) {
+		List<Integer> operands = izraz.getOperands();
+		List<Integer> allowedOperands = new ArrayList<>(this.allAllowedNumbers);
+		for (int i = 0; i < operands.size(); i++) {
+			allowedOperands.remove(operands.get(i));
+		}
+
+		if (!allowedOperands.isEmpty()) {
+			Integer operandToAdd = allowedOperands.get(ThreadLocalRandom.current().nextInt(allowedOperands.size()));
+			izraz.setOperandValue(ThreadLocalRandom.current().nextInt(operands.size()), operandToAdd);
+		}
 	}
 
 	private void removeOperation(Izraz izraz) {
@@ -68,5 +101,6 @@ public class IzrazMutator extends MutatingStrategy {
 		izraz.setOperandValue(firstOperand, secondOperandValue);
 		izraz.setOperandValue(secondOperand, firstOperandValue);
 	}
+	
 
 }

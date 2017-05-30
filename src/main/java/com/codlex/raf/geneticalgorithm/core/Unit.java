@@ -6,4 +6,5 @@ public abstract class Unit {
 	public abstract Collection<Unit> makeLoveWith(Unit secondParent);
 	public abstract int distanceTo(Unit other);
 	public abstract Unit duplicate();
+	public abstract String getKey();
 }

@@ -124,9 +124,9 @@ public class Izraz extends Unit {
 			try {
 				return (Integer) EVALUATOR.eval(toString());
 			} catch (ScriptException e) {
-				return Integer.MIN_VALUE;
+				return Integer.MIN_VALUE + 1;
 			} catch (ClassCastException e) {
-				return Integer.MIN_VALUE;
+				return Integer.MIN_VALUE + 1;
 			}
 		}
 
@@ -325,6 +325,9 @@ public class Izraz extends Unit {
 		return this.topOperation.evalate();
 	}
 
+	public List<Integer> getOperands() {
+		return this.topOperation.getOperands();
+	}
 	@Override
 	public String toString() {
 		return this.topOperation.toString();
@@ -345,13 +348,31 @@ public class Izraz extends Unit {
 		System.out.println(b);
 	}
 
-	private class Replacement {
+	private static class Replacement {
 		int toReplace;
 		int replacement;
+		boolean reverse;
 
-		public Replacement(int toReplace, int replacement) {
+		public Replacement(int toReplace, int replacement, boolean reverse) {
+			this.reverse = reverse;
 			this.toReplace = toReplace;
 			this.replacement = replacement;
+		}
+
+		public Izraz born(Izraz firstIzraz, Izraz secondIzraz) {
+			if (this.reverse) {
+				Izraz tmp = firstIzraz;
+				firstIzraz = secondIzraz;
+				secondIzraz = tmp;
+			}
+
+//			System.out.println("Replacing: " + firstIzraz.getOperationObject(this.toReplace) + " with "
+//					+ secondIzraz.getOperationObject(this.replacement));
+//			System.out.println("ToRepalce: " + this.toReplace + " with " + this.replacement);
+			Izraz firstChildClone = (Izraz) firstIzraz.duplicate();
+			firstChildClone.setOperationObject(this.toReplace, secondIzraz.getOperationObject(this.replacement));
+
+			return firstChildClone;
 		}
 	}
 
@@ -360,15 +381,42 @@ public class Izraz extends Unit {
 		// dozvoljeni su: (svi - iskoristeni_u_prvom + oni_iz_podstabla)
 		Izraz secondParentIzraz = (Izraz) secondParent;
 
-		List<Integer> allFirstParentOperands = this.topOperation.getOperands();
+		List<Replacement> replacements = new ArrayList<>();
+		replacements.addAll(makeChildren(this, secondParentIzraz, false));
+		replacements.addAll(makeChildren(secondParentIzraz, this, true));
+		
+		//System.out.println("Replacements: " + replacements.size());
+		
+		List<Unit> children = new ArrayList<>();
+
+		if (replacements.size() >= 2) {
+			Replacement firstChild = replacements.get(ThreadLocalRandom.current().nextInt(replacements.size()));
+			children.add(firstChild.born(this, secondParentIzraz));
+			replacements.remove(firstChild);
+
+			Replacement secondChild = replacements.get(ThreadLocalRandom.current().nextInt(replacements.size()));
+			children.add(secondChild.born(this, secondParentIzraz));
+
+		} else {
+			children.add(this);
+			children.add(secondParent);
+		}
+
+		return children;
+	}
+
+	private static List<Replacement> makeChildren(Izraz firstParentIzraz, Izraz secondParentIzraz, boolean reverse) {
+		List<Integer> allFirstParentOperands = firstParentIzraz.topOperation.getOperands();
 
 		List<Replacement> replacements = new ArrayList<>();
-		int operations = this.topOperation.countOperations();
-		for (int i = 0; i < operations; i++) {
-			Operation operation = getOperationObject(i);
+		int operations = firstParentIzraz.topOperation.countOperations();
+		for (int i = 1; i < operations; i++) {
+			Operation operation = firstParentIzraz.getOperationObject(i);
 			List<Integer> allowedOperands = new ArrayList<>();
-			allowedOperands.addAll(allowedOperands); // initialize with all
-														// operands
+			allowedOperands.addAll(firstParentIzraz.allAllowedOperands); // initialize
+																			// with
+																			// all
+			// operands
 			for (Integer operand : allFirstParentOperands) {
 				allowedOperands.remove(operand);
 			}
@@ -381,33 +429,15 @@ public class Izraz extends Unit {
 				if (secondOperation == null) {
 					System.out.println(secondParentIzraz);
 				}
-				if (canBeReplaced(allowedOperands, secondOperation.getOperands())) {
-					replacements.add(new Replacement(i, j));
+				List<Integer> neededOperands = secondOperation.getOperands();
+				if (firstParentIzraz.canBeReplaced(allowedOperands, secondOperation.getOperands())) {
+					replacements.add(new Replacement(i, j, reverse));
+//					System.out.println("replaced " + operation + " with " + secondOperation + " allowed: "
+//							+ allowedOperands + " needed: " + neededOperands);
 				}
 			}
 		}
-
-		List<Unit> children = new ArrayList<>();
-
-		if (replacements.size() > 2) {
-			Replacement firstChild = replacements.get(ThreadLocalRandom.current().nextInt(replacements.size()));
-			Izraz firstChildClone = (Izraz) duplicate();
-			firstChildClone.setOperationObject(firstChild.toReplace,
-					secondParentIzraz.getOperationObject(firstChild.replacement));
-			children.add(firstChildClone);
-
-			Replacement secondChild = replacements.get(ThreadLocalRandom.current().nextInt(replacements.size()));
-			Izraz firstChildClone2 = (Izraz) duplicate();
-			firstChildClone2.setOperationObject(secondChild.toReplace,
-					secondParentIzraz.getOperationObject(secondChild.replacement));
-			children.add(firstChildClone2);
-
-		} else {
-			children.add(this);
-			children.add(secondParent);
-		}
-
-		return children;
+		return replacements;
 	}
 
 	private void setOperationObject(int toReplace, Operation operationObject) {
@@ -486,5 +516,10 @@ public class Izraz extends Unit {
 
 	public void removeOperation(int operationIndex) {
 		this.topOperation.removeOperation(new AtomicInteger(), operationIndex);
+	}
+
+	@Override
+	public String getKey() {
+		return toString();
 	}
 }

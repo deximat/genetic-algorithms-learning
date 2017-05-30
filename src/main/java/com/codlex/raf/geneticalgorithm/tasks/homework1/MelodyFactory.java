@@ -18,13 +18,14 @@ public class MelodyFactory extends PopulationFactory {
 	}
 
 	@Override
-	public List<Unit> generate() {
+	public List<Unit> generate(int size) {
 		List<Unit> initialPopulation = new ArrayList<Unit>();
-		for (int i = 0; i < this.populationSize; i++) {
+		for (int i = 0; i < size; i++) {
 			initialPopulation.add(generateMelody());
 		}
 		return initialPopulation;
 	}
+	
 
 	private Melody generateMelody() {
 		final Melody melody = new Melody(this.melodyLength);
@@ -35,6 +36,11 @@ public class MelodyFactory extends PopulationFactory {
 			}
 		}
 		return melody;
+	}
+
+	@Override
+	public List<Unit> generate() {
+		return generate(this.populationSize);
 	}
 
 }

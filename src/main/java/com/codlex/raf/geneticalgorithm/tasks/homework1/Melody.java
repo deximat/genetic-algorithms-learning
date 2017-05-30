@@ -278,4 +278,9 @@ public class Melody extends Unit {
 			tones.remove(ThreadLocalRandom.current().nextInt(tones.size()));
 		}
 	}
+
+	@Override
+	public String getKey() {
+		return null;
+	}
 }
