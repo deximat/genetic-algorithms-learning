@@ -117,6 +117,7 @@ public class Izraz extends Unit {
 			operation.leftGroup.rightGroup.operation = OperationType.Value;
 			operation.rightGroup = new Operation(operation);
 			operation.rightGroup.operation = OperationType.Value;
+			 
 			return operation;
 		}
 
